@@ -1,2 +1,4 @@
 /vendor/
 /diceshaker
+/cert.pem
+/key.pem

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
@@ -20,6 +21,10 @@ var (
 	url  = flag.String("connect", nats.DefaultURL, "NATS server URL")
 	host = flag.String("http", ":8080", "Host and port for HTTP requests")
 	role = flag.String("role", "", "Is this a server or a client?")
+
+	certVerify = flag.Bool("verify", false, "Controls whether a client verifies the server's certificate chain and host name")
+	certFile   = flag.String("certfile", "cert.pem", "Path to certificate file")
+	keyFile    = flag.String("keyfile", "key.pem", "Path to key file")
 )
 
 func init() {
@@ -28,11 +33,21 @@ func init() {
 
 func connect() *nats.Conn {
 	log.Printf("connecting to server\n")
-	nc, err := nats.Connect(*url)
 
+	pair, err := tls.LoadX509KeyPair(*certFile, *keyFile)
 	if err != nil {
-		log.Printf("error connecting to server on %s\n", *url)
-		log.Fatal(err)
+		log.Fatalf("error loading certificate key pair (%s, %s): %v\n",
+			*certFile, *keyFile, err)
+	}
+
+	config := &tls.Config{
+		InsecureSkipVerify: !*certVerify,
+		Certificates:       []tls.Certificate{pair},
+	}
+
+	nc, err := nats.Connect(*url, nats.Secure(config))
+	if err != nil {
+		log.Fatalf("error connecting to server on %s: %v\n", *url, err)
 	}
 
 	return nc
@@ -82,6 +97,7 @@ func main() {
 	case roleServer:
 		server()
 	default:
-		log.Fatalf("bad role '%s', expecting %s or %s\n", *role, roleClient, roleServer)
+		log.Fatalf("bad role '%s', expecting %s or %s\n",
+			*role, roleClient, roleServer)
 	}
 }
