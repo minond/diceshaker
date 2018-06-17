@@ -21,6 +21,7 @@ you can build and deploy to both the (amd64) server and client:
 make amd64 deploy
 ```
 
+
 ## Setting up the server
 
 Install `gnatsd` with the command below:
@@ -37,6 +38,10 @@ cd ~/diceshaker
 gnatsd --tls --tlscert cert.pem --tlskey key.pem
 ./diceshaker -role server
 ```
+
+The last command will bind to port 8080 on localhost by default and listen to
+HTTP requests. Going to `/roll` will trigger a roll event.
+
 
 ## Setting up the client (Raspberry Pi)
 
