@@ -2,7 +2,7 @@ IRL Random Number Generator using a [Raspberry Pi](raspberry-pi) with a [Camera
 Module](camera-module). I'm using a Model B but any model with a camera module
 and wireless should work.
 
-#### Build
+## Build
 
 You'll need `openssl`, Go + dep for building the project, and NATS running on a
 server. NATS is used to communicate between the server (running on a server)
@@ -21,7 +21,7 @@ you can build and deploy to both the (amd64) server and client:
 make amd64 deploy
 ```
 
-#### Setting up the server
+## Setting up the server
 
 Install `gnatsd` with the command below:
 
@@ -38,7 +38,7 @@ gnatsd --tls --tlscert cert.pem --tlskey key.pem
 ./diceshaker -role server
 ```
 
-#### Setting up the client (Raspberry Pi)
+## Setting up the client (Raspberry Pi)
 
 Update the system if you haven't already and open the Raspberry Pi's
 configuration program:
