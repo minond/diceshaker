@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net/http"
 	"runtime"
 
 	nats "github.com/nats-io/go-nats"
@@ -16,6 +18,7 @@ const (
 
 var (
 	url  = flag.String("connect", nats.DefaultURL, "NATS server URL")
+	host = flag.String("http", ":8080", "Host and port for HTTP requests")
 	role = flag.String("role", "", "Is this a server or a client?")
 )
 
@@ -45,8 +48,7 @@ func client() {
 	nc.Flush()
 
 	if err := nc.LastError(); err != nil {
-		log.Printf("client subscription error:")
-		log.Fatal(err)
+		log.Fatalf("client subscription error: %v\n", err)
 	}
 
 	log.Printf("listening for messages\n")
@@ -57,15 +59,20 @@ func server() {
 	nc := connect()
 	defer nc.Close()
 
-	nc.Publish(subjRoll, nil)
-	nc.Flush()
+	http.HandleFunc("/"+subjRoll, func(w http.ResponseWriter, r *http.Request) {
+		nc.Publish(subjRoll, nil)
+		nc.Flush()
 
-	if err := nc.LastError(); err != nil {
-		log.Printf("server publishing error:")
-		log.Fatal(err)
-	} else {
-		log.Printf("published message\n")
-	}
+		if err := nc.LastError(); err != nil {
+			log.Printf("server publishing error: %v\n", err)
+			fmt.Fprintf(w, "err")
+		} else {
+			log.Printf("published message\n")
+			fmt.Fprintf(w, "ok")
+		}
+	})
+
+	log.Fatal(http.ListenAndServe(*host, nil))
 }
 
 func main() {
@@ -75,6 +82,6 @@ func main() {
 	case roleServer:
 		server()
 	default:
-		log.Fatal("bad role '%s', expecting %s or %s", *role, roleClient, roleServer)
+		log.Fatalf("bad role '%s', expecting %s or %s\n", *role, roleClient, roleServer)
 	}
 }
