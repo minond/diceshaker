@@ -40,7 +40,7 @@ gnatsd --tls --tlscert cert.pem --tlskey key.pem
 ```
 
 The last command will bind to port 8080 on localhost by default and listen to
-HTTP requests. Going to `/roll` will trigger a roll event.
+HTTP requests. Going to `/` will trigger a roll event.
 
 
 ## Setting up the client (Raspberry Pi)

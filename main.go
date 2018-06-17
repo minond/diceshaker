@@ -75,7 +75,7 @@ func server() {
 	nc := connect()
 	defer nc.Close()
 
-	http.HandleFunc("/"+subjRoll, func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		nc.Publish(subjRoll, []byte(uuid.New().String()))
 		nc.Flush()
 
