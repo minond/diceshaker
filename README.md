@@ -1,5 +1,3 @@
-WIP!!
-
 IRL Random Number Generator using a [Raspberry Pi](raspberry-pi) with a [Camera
 Module](camera-module). I'm using a Model B but any model with a camera module
 and wireless should work.
