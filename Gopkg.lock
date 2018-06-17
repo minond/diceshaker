@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
+
+[[projects]]
   name = "github.com/nats-io/go-nats"
   packages = [
     ".",
@@ -20,6 +26,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7f8e1892cc7d2660028834bc183e69c6ca9bfc86404c9a9afe72b9cc0bed2b11"
+  inputs-digest = "d3acd928ab393868dbe00c841488992f44cf9290c9ef06dad3faabf0b629e927"
   solver-name = "gps-cdcl"
   solver-version = 1

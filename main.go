@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"runtime"
 
+	"github.com/google/uuid"
 	nats "github.com/nats-io/go-nats"
 )
 
@@ -58,7 +59,7 @@ func client() {
 
 	log.Printf("subscribing to '%s'\n", subjRoll)
 	nc.Subscribe(subjRoll, func(m *nats.Msg) {
-		log.Printf("got roll message\n")
+		log.Printf("roll (%s)\n", string(m.Data))
 	})
 	nc.Flush()
 
@@ -75,7 +76,7 @@ func server() {
 	defer nc.Close()
 
 	http.HandleFunc("/"+subjRoll, func(w http.ResponseWriter, r *http.Request) {
-		nc.Publish(subjRoll, nil)
+		nc.Publish(subjRoll, []byte(uuid.New().String()))
 		nc.Flush()
 
 		if err := nc.LastError(); err != nil {
