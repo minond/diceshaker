@@ -35,5 +35,22 @@ cd ~/diceshaker
 ./diceshaker -role client -connect nats://<NATSSERVERHOST>:4222
 ```
 
+## Setting up the Raspberry Pi
+
+Update the system if you haven't already and open the Raspberry Pi's
+configuration program:
+
+```bash
+sudo apt-get update && sudo apt-get upgrade
+sudo raspi-config
+```
+
+Once opened, arrow down to "Interface Options", then find the "Camera" setting,
+and when asked to enable it, select "<Yes>". You'll now be prompted to reboot,
+which you should do. After the reboot, you can test things out by running
+`raspistill -o img.jpg`. If things are working you should get a popup ui window
+with a preview of the camera's image. It'll take a photo in five seconds.
+
+
 [raspberry-pi]: https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
 [camera-module]: https://www.raspberrypi.org/products/camera-module-v2/
