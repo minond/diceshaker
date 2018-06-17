@@ -24,13 +24,15 @@ start things up with the following commands:
 
 ```bash
 # on server
+cd ~/diceshaker
 gnatsd --tls --tlscert cert.pem --tlskey key.pem
-./diceshaker/diceshaker -role server
+./diceshaker -role server
 ```
 
 ```bash
 # on client
-./diceshaker/diceshaker -role client -connect nats://<NATSSERVERHOST>:4222
+cd ~/diceshaker
+./diceshaker -role client -connect nats://<NATSSERVERHOST>:4222
 ```
 
 [raspberry-pi]: https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
