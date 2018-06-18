@@ -5,10 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"os/exec"
 	"runtime"
 
 	"github.com/google/uuid"
+	expl "github.com/minond/expresslane"
 	nats "github.com/nats-io/go-nats"
 )
 
@@ -56,10 +59,31 @@ func connect() *nats.Conn {
 
 func client() {
 	nc := connect()
+	q := expl.New().Run()
+
+	q.Register("photo", func(i expl.Item) expl.Ack {
+		name := fmt.Sprintf("%d.jpg", rand.Int())
+		cmd := exec.Command("raspistill", "--nopreview", "--timeout", "1",
+			"--output", name)
+
+		log.Print("taking photo... ")
+		if err := cmd.Run(); err != nil {
+			log.Printf("error running command: %v\n", err)
+		} else {
+			log.Println("great success!")
+		}
+
+		return expl.Ack{Data: name}
+	})
 
 	log.Printf("subscribing to '%s'\n", subjRoll)
 	nc.Subscribe(subjRoll, func(m *nats.Msg) {
 		log.Printf("roll (%s)\n", string(m.Data))
+		ch := q.Push(expl.Item{Topic: "photo", Data: m.Data})
+		ack := <-ch
+		if len(ack) > 0 {
+			log.Printf("file: %s\n", ack[0].Data)
+		}
 	})
 	nc.Flush()
 

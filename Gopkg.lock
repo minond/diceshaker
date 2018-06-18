@@ -8,6 +8,12 @@
   version = "0.2"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/minond/expresslane"
+  packages = ["."]
+  revision = "8226a8e83b34cee049665bd0bfe86889efce9b5d"
+
+[[projects]]
   name = "github.com/nats-io/go-nats"
   packages = [
     ".",
@@ -26,6 +32,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d3acd928ab393868dbe00c841488992f44cf9290c9ef06dad3faabf0b629e927"
+  inputs-digest = "c4ec2bf877fc179b2571eceed77255406bb95cb4b22c5059d4faf20dd84f8c6a"
   solver-name = "gps-cdcl"
   solver-version = 1
