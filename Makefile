@@ -13,10 +13,10 @@ build: arm
 
 deploy: cert server pi
 
-amd64:
+amd64: deps
 	GOOS=linux GOARCH=amd64 go build
 
-arm:
+arm: deps
 	GOOS=linux GOARCH=arm GOARM=5 go build
 
 pi: arm
@@ -24,6 +24,9 @@ pi: arm
 
 server:
 	scp $(FILES) $(SERVUSER)@$(SERVADDR):~/diceshaker/
+
+deps:
+	dep ensure
 
 cert:
 	@if [ ! -f $(CERTFILE) ]; then \
