@@ -57,23 +57,28 @@ func connect() *nats.Conn {
 	return nc
 }
 
+func photo() (string, error) {
+	name := fmt.Sprintf("%d.jpg", rand.Int())
+	cmd := exec.Command("raspistill", "--nopreview",
+		"--timeout", "1", "--output", name)
+
+	log.Print("taking photo... ")
+	if err := cmd.Run(); err != nil {
+		log.Printf("error running command: %v\n", err)
+		return name, err
+	}
+
+	log.Println("great success!")
+	return name, nil
+}
+
 func client() {
 	nc := connect()
-	q := expl.New().Run()
+	q := expl.New().Start()
 
 	q.Register("photo", func(i expl.Item) expl.Ack {
-		name := fmt.Sprintf("%d.jpg", rand.Int())
-		cmd := exec.Command("raspistill", "--nopreview", "--timeout", "1",
-			"--output", name)
-
-		log.Print("taking photo... ")
-		if err := cmd.Run(); err != nil {
-			log.Printf("error running command: %v\n", err)
-		} else {
-			log.Println("great success!")
-		}
-
-		return expl.Ack{Data: name}
+		name, err := photo()
+		return expl.Ack{Data: name, Err: err}
 	})
 
 	log.Printf("subscribing to '%s'\n", subjRoll)
