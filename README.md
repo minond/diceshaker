@@ -4,11 +4,11 @@ and wireless should work.
 
 ## Build
 
-You'll need `openssl`, Go + dep for building the project, and NATS running on a
-server. NATS is used to communicate between the server (running on a server)
-and the client (running on a Raspberry Pi.) Once you have `openssl`, you can
-generate a self-signed cert with `make cert`. This generates `cert.pem` and
-`key.pem` which will be pushed to the server and client.
+Besides the hardware, you'll need `openssl`, Go + dep for building the project,
+and NATS running on a server. NATS is used to communicate between the server
+(running on a server) and the client (running on a Raspberry Pi.) Once you have
+`openssl`, you can generate a self-signed cert with `make cert`. This generates
+`cert.pem` and `key.pem` which will be pushed to the server and client.
 
 You can build the project for the Raspberry Pi with `make arm`. And assuming
 your server is running Linux on an amd64 architecture, you can build for that
@@ -39,27 +39,45 @@ gnatsd --tls --tlscert cert.pem --tlskey key.pem
 ./diceshaker -role server
 ```
 
-The last command will bind to port 8080 on localhost by default and listen to
-HTTP requests. Going to `/` will trigger a roll event.
+The last command will bind to port 8080 on localhost and listen to HTTP
+requests. Going to `/` will trigger a roll event. By default it'll know how to
+look up the certificate files but all of this can be configured:
+
+```text
+$ ./diceshaker -help
+Usage of ./diceshaker:
+  -certfile string
+        Path to certificate file (default "cert.pem")
+  -connect string
+        NATS server URL (default "nats://localhost:4222")
+  -http string
+        Host and port for HTTP requests (default ":8080")
+  -keyfile string
+        Path to key file (default "key.pem")
+  -role string
+        Is this a server or a client?
+  -verify
+        Controls whether a client verifies the server's certificate chain and host name
+```
 
 
 ## Setting up the client (Raspberry Pi)
 
-Update the system if you haven't already and open the Raspberry Pi's
-configuration program:
-
 ```bash
+sudo systemctl enable ssh
 sudo apt-get update && sudo apt-get upgrade
 sudo raspi-config
 ```
 
-Once opened, arrow down to "Interface Options", then find the "Camera" setting,
-and when asked to enable it, select "<Yes>". You'll now be prompted to reboot,
-which you should do. After the reboot, you can test things out by running
-`raspistill -o img.jpg`. If things are working you should get a popup ui window
-with a preview of the camera's image. It'll take a photo in five seconds.
+This will enable ssh on startup, do a system update, and start the
+configuration manager. Once started, arrow down to "Interface Options", find
+the "Camera" setting, and when asked to enable it, select "&lt;Yes&gt;". You'll
+now be prompted to reboot, which you should do. After the reboot you can test
+things out by running `raspistill -o img.jpg`. If all worked you should get a
+popup ui window with a preview of the camera's image. It'll take a photo in
+five seconds.
 
-After deploying your code, you can start up the client with the following
+After deploying your code, you can start the client with the following
 commands:
 
 ```bash
