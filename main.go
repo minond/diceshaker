@@ -83,11 +83,31 @@ func client() {
 
 	log.Printf("subscribing to '%s'\n", subjRoll)
 	nc.Subscribe(subjRoll, func(m *nats.Msg) {
-		log.Printf("roll (%s)\n", string(m.Data))
-		ch := q.Push(expl.Item{Topic: "photo", Data: m.Data})
-		ack := <-ch
-		if len(ack) > 0 {
-			log.Printf("file: %s\n", ack[0].Data)
+		id := string(m.Data)
+		task := expl.Item{Topic: "photo", Data: m.Data}
+		ch := q.Push(task)
+
+		log.Printf("roll %s\n", id)
+		acks := <-ch
+
+		if len(acks) == 0 {
+			log.Println("error, expecting 1 ack")
+			return
+		}
+
+		ack := acks[0]
+		if ack.Err != nil {
+			log.Printf("error running photo task: %v\n", ack.Err)
+			return
+		}
+
+		switch file := ack.Data.(type) {
+		case string:
+			log.Printf("file is %s\n", file)
+			log.Printf("publishing to %s\n", id)
+			nc.Publish(id, []byte(file))
+		default:
+			log.Printf("invalid ack data type: %v\n", ack.Data)
 		}
 	})
 	nc.Flush()
@@ -105,16 +125,19 @@ func server() {
 	defer nc.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		nc.Publish(subjRoll, []byte(uuid.New().String()))
+		id := uuid.New().String()
+		ch := make(chan string, 1)
+
+		log.Printf("subscribing to %s\n", id)
+		nc.Subscribe(id, func(m *nats.Msg) {
+			log.Printf("got response for %s: %s\n", id, m.Data)
+			ch <- string(m.Data)
+		})
+
+		nc.Publish(subjRoll, []byte(id))
 		nc.Flush()
 
-		if err := nc.LastError(); err != nil {
-			log.Printf("server publishing error: %v\n", err)
-			fmt.Fprintf(w, "err")
-		} else {
-			log.Printf("published message\n")
-			fmt.Fprintf(w, "ok")
-		}
+		fmt.Fprintf(w, <-ch)
 	})
 
 	log.Fatal(http.ListenAndServe(*host, nil))
