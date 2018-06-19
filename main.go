@@ -129,7 +129,7 @@ func server() {
 		ch := make(chan string, 1)
 
 		log.Printf("subscribing to %s\n", id)
-		nc.Subscribe(id, func(m *nats.Msg) {
+		sub, _ := nc.Subscribe(id, func(m *nats.Msg) {
 			log.Printf("got response for %s: %s\n", id, m.Data)
 			ch <- string(m.Data)
 		})
@@ -138,6 +138,7 @@ func server() {
 		nc.Flush()
 
 		fmt.Fprintf(w, <-ch)
+		sub.Unsubscribe()
 	})
 
 	log.Fatal(http.ListenAndServe(*host, nil))
