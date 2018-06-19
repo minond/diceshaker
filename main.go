@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	roleServer = "server"
-	roleClient = "client"
-	subjRoll   = "roll"
+	ROLE_SERVER = "server"
+	ROLE_CLIENT = "client"
+	SUBJ_ROLL   = "roll"
 )
 
 var (
@@ -76,16 +76,15 @@ func client() {
 	nc := connect()
 	q := expl.New().Start()
 
-	q.Register("photo", func(i expl.Item) expl.Ack {
+	q.Register(SUBJ_ROLL, func(i expl.Item) expl.Ack {
 		name, err := photo()
 		return expl.Ack{Data: name, Err: err}
 	})
 
-	log.Printf("subscribing to '%s'\n", subjRoll)
-	nc.Subscribe(subjRoll, func(m *nats.Msg) {
+	log.Printf("subscribing to '%s'\n", SUBJ_ROLL)
+	nc.Subscribe(SUBJ_ROLL, func(m *nats.Msg) {
 		id := string(m.Data)
-		task := expl.Item{Topic: "photo", Data: m.Data}
-		ch := q.Push(task)
+		ch := q.Push(SUBJ_ROLL, m.Data)
 
 		log.Printf("roll %s\n", id)
 		acks := <-ch
@@ -134,7 +133,7 @@ func server() {
 			ch <- string(m.Data)
 		})
 
-		nc.Publish(subjRoll, []byte(id))
+		nc.Publish(SUBJ_ROLL, []byte(id))
 		nc.Flush()
 
 		fmt.Fprintf(w, <-ch)
@@ -146,12 +145,12 @@ func server() {
 
 func main() {
 	switch *role {
-	case roleClient:
+	case ROLE_CLIENT:
 		client()
-	case roleServer:
+	case ROLE_SERVER:
 		server()
 	default:
 		log.Fatalf("bad role '%s', expecting %s or %s\n",
-			*role, roleClient, roleServer)
+			*role, ROLE_CLIENT, ROLE_SERVER)
 	}
 }

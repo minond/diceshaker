@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/minond/expresslane"
   packages = ["."]
-  revision = "7a30dd31142babfd9f5f1a01722d337dbde2e7c9"
+  revision = "aee5473e8a6e524a919a933622759a2823c028ae"
 
 [[projects]]
   name = "github.com/nats-io/go-nats"
