@@ -9,7 +9,7 @@ BINARYFILE ?= diceshaker
 
 FILES = $(BINARYFILE) $(CERTFILE) $(KEYFILE)
 
-build: arm
+build: arm amd64
 
 deploy: cert server pi
 
