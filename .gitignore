@@ -1,4 +1,5 @@
 /vendor/
 /diceshaker
-/cert.pem
-/key.pem
+/config.mk
+/*.pem
+/*.service

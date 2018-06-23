@@ -1,17 +1,14 @@
-PIUSER ?= pi
-PIADDR ?= 192.168.1.4
-SERVUSER ?= marcos
-SERVADDR ?= minond.xyz
+-include config.mk
 
+NATSADDR ?= nats://$(SERVADDR):4222
 CERTFILE ?= cert.pem
 KEYFILE ?= key.pem
 BINARYFILE ?= diceshaker
-
-FILES = $(BINARYFILE) $(CERTFILE) $(KEYFILE)
+FILES ?= $(BINARYFILE) $(CERTFILE) $(KEYFILE)
 
 build: arm amd64
 
-deploy: cert server pi
+deploy: cert deploy-server deploy-pi
 
 amd64: deps
 	GOOS=linux GOARCH=amd64 go build
@@ -25,12 +22,16 @@ deploy-pi: arm
 deploy-server:
 	scp $(FILES) $(SERVUSER)@$(SERVADDR):~/diceshaker/
 
-deploy-systemd: arm
+deploy-systemd:
 	scp diceshaker-client.service $(PIUSER)@$(PIADDR):~/diceshaker/
 	scp diceshaker-server.service $(SERVUSER)@$(SERVADDR):~/diceshaker/
 
 deps:
 	dep ensure
+
+systemd:
+	./gensystemd server /home/$(SERVUSER)/diceshaker > diceshaker-server.service
+	./gensystemd client /home/$(PIUSER)/diceshaker $(NATSADDR) > diceshaker-client.service
 
 cert:
 	@if [ ! -f $(CERTFILE) ]; then \
