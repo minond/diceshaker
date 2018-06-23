@@ -19,11 +19,15 @@ amd64: deps
 arm: deps
 	GOOS=linux GOARCH=arm GOARM=5 go build
 
-pi: arm
+deploy-pi: arm
 	scp $(FILES) $(PIUSER)@$(PIADDR):~/diceshaker/
 
-server:
+deploy-server:
 	scp $(FILES) $(SERVUSER)@$(SERVADDR):~/diceshaker/
+
+deploy-systemd: arm
+	scp diceshaker-client.service $(PIUSER)@$(PIADDR):~/diceshaker/
+	scp diceshaker-server.service $(SERVUSER)@$(SERVADDR):~/diceshaker/
 
 deps:
 	dep ensure
