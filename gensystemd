@@ -1,0 +1,45 @@
+#!/bin/bash
+
+role=$1
+dest=$2
+nats=$3
+
+case "$role" in
+  server)
+    execstart="$dest/diceshaker -role server -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    ;;
+
+  client)
+    execstart="$dest/diceshaker -role client -connect $nats -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    ;;
+
+  help|-h|--help)
+    echo "Usage: ./gensystemd <role> <destination> [nats-host]"
+    echo
+    echo "Options for <role> include 'server' and 'client'. The destination"
+    echo "value should be the path to where the executable and certs live on the"
+    echo "remove machine. By default will be value of \$HOME on remote machine. The"
+    echo "NATS host will most likely be nats://serveraddr:4222."
+    exit 0
+    ;;
+esac
+
+cat <<-HERE
+[Unit]
+Description=Diceshaker client application
+Documentation=https://github.com/minond/diceshaker
+After=network-online.target multi-user.target
+Wants=network-online.target multi-user.target
+Requires=network-online.target
+
+[Service]
+Type=notify
+ExecStart=$execstart
+ExecReload=/bin/kill -s HUP \$MAINPID
+KillMode=process
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+HERE
