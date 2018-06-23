@@ -1,38 +1,50 @@
 #!/bin/bash
 
 role=$1
-dest=$2
-nats=$3
+user=$2
+dest=$3
+natsOrHttp=$4
 
 help() {
-  echo "Usage: ./gensystemd <role> <destination> [nats-host]"
+  echo "Usage: ./gensystemd <role> <user> <destination> [nats-host] [http-port]"
   echo
   echo "Options for <role> include 'server' and 'client'. The destination"
   echo "value should be the path to where the executable and certs live on the"
-  echo "remove machine. By default will be value of \$HOME on remote machine. The"
-  echo "NATS host will most likely be nats://serveraddr:4222."
+  echo "remove machine. By default will be value of \$HOME on remote machine."
+  echo
+  echo "The NATS host will most likely be nats://serveraddr:4222. This is required"
+  echo "for the client configuration. The HTTP port is the address/port the HTTP"
+  echo "server should bind to. The default is ':3000'."
 }
 
-if [ -z "$dest" ]; then
-  echo "Error: destination is required"
-  echo
-  help
-  exit 1
-fi
+assert() {
+  label=$1
+  value=$2
+
+  if [ -z "$value" ]; then
+    echo "Error: $label is required"
+    echo
+    help
+    exit 1
+  fi
+}
 
 case "$role" in
   server)
-    execstart="$dest/diceshaker -role server -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    if [ -z "$natsOrHttp" ]; then
+      natsOrHttp=":3000"
+    fi
+
+    assert "user" "$user"
+    assert "destination" "$dest"
+    execstart="$dest/diceshaker -role server -http $natsOrHttp -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   client)
-    if [ -z "$nats" ]; then
-      echo "Error: nats host is required when creating the client configuration"
-      echo
-      help
-      exit 1
-    fi
-    execstart="$dest/diceshaker -role client -connect $nats -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    assert "user" "$user"
+    assert "destination" "$dest"
+    assert "nats host" "$natsOrHttp"
+    execstart="$dest/diceshaker -role client -connect $natsOrHttp -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   help|-h|--help)
@@ -41,10 +53,8 @@ case "$role" in
     ;;
 
   *)
-    echo "Error: valid role is required"
-    echo
-    help
-    exit 1
+    assert "role"
+    ;;
 esac
 
 cat <<-HERE
@@ -57,6 +67,8 @@ Requires=network-online.target
 
 [Service]
 Type=simple
+User=$user
+WorkingDirectory=$dest
 ExecStart=$execstart
 ExecReload=/bin/kill -s HUP \$MAINPID
 KillMode=process

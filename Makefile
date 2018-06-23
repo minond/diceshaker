@@ -5,6 +5,7 @@ CERTFILE ?= cert.pem
 KEYFILE ?= key.pem
 BINARYFILE ?= diceshaker
 FILES ?= $(BINARYFILE) $(CERTFILE) $(KEYFILE)
+HTTPPORT ?= ":3000"
 
 build: arm amd64
 
@@ -30,8 +31,8 @@ deps:
 	dep ensure
 
 systemd:
-	./gensystemd server /home/$(SERVUSER)/diceshaker > diceshaker-server.service
-	./gensystemd client /home/$(PIUSER)/diceshaker $(NATSADDR) > diceshaker-client.service
+	./gensystemd server $(SERVUSER) /home/$(SERVUSER)/diceshaker $(HTTPPORT) > diceshaker-server.service
+	./gensystemd client $(PIUSER) /home/$(PIUSER)/diceshaker $(NATSADDR) > diceshaker-client.service
 
 cert:
 	@if [ ! -f $(CERTFILE) ]; then \
