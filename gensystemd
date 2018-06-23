@@ -33,7 +33,7 @@ Wants=network-online.target multi-user.target
 Requires=network-online.target
 
 [Service]
-Type=notify
+Type=simple
 ExecStart=$execstart
 ExecReload=/bin/kill -s HUP \$MAINPID
 KillMode=process
