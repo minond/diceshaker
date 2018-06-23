@@ -4,24 +4,47 @@ role=$1
 dest=$2
 nats=$3
 
+help() {
+  echo "Usage: ./gensystemd <role> <destination> [nats-host]"
+  echo
+  echo "Options for <role> include 'server' and 'client'. The destination"
+  echo "value should be the path to where the executable and certs live on the"
+  echo "remove machine. By default will be value of \$HOME on remote machine. The"
+  echo "NATS host will most likely be nats://serveraddr:4222."
+}
+
+if [ -z "$dest" ]; then
+  echo "Error: destination is required"
+  echo
+  help
+  exit 1
+fi
+
 case "$role" in
   server)
     execstart="$dest/diceshaker -role server -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   client)
+    if [ -z "$nats" ]; then
+      echo "Error: nats host is required when creating the client configuration"
+      echo
+      help
+      exit 1
+    fi
     execstart="$dest/diceshaker -role client -connect $nats -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   help|-h|--help)
-    echo "Usage: ./gensystemd <role> <destination> [nats-host]"
-    echo
-    echo "Options for <role> include 'server' and 'client'. The destination"
-    echo "value should be the path to where the executable and certs live on the"
-    echo "remove machine. By default will be value of \$HOME on remote machine. The"
-    echo "NATS host will most likely be nats://serveraddr:4222."
+    help
     exit 0
     ;;
+
+  *)
+    echo "Error: valid role is required"
+    echo
+    help
+    exit 1
 esac
 
 cat <<-HERE
