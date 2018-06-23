@@ -2,20 +2,31 @@ IRL Random Number Generator using a [Raspberry Pi](raspberry-pi) with a [Camera
 Module](camera-module). I'm using a Model B but any model with a camera module
 and wireless should work.
 
-## Build
+## Getting started
+
+Start off by creating a `config.mk` file with the following values filled in:
+
+```make
+PIUSER = <username of user in Raspberry Pi>
+PIADDR = <ip address of Raspberry Pi>
+SERVUSER = <username of user in server>
+SERVADDR = <ip address of server>
+```
+
+## Building
 
 Besides the hardware, you'll need `openssl`, Go + dep for building the project,
 and NATS running on a server. NATS is used to communicate between the server
 (running on a server) and the client (running on a Raspberry Pi.) Once you have
-`openssl`, you can generate a self-signed cert with `make cert`. This generates
-`cert.pem` and `key.pem` which will be pushed to the server and client.
+`openssl` on your build machine, you can generate a self-signed cert with
+`make cert`. This generates `cert.pem` and `key.pem` which will be pushed to
+the server and client.
 
 You can build the project for the Raspberry Pi with `make arm`. And assuming
 your server is running Linux on an amd64 architecture, you can build for that
 with `make amd64`. Once built, deploy with `make deploy`. This last command
 uses `scp` to copy the files over to the two devices. This can be configured
-using the _PI*_ and _SERV*_ variables in the Makefile. In short, this is how
-you can build and deploy to both the (amd64) server and client:
+using the contents of the `config.mk` file you created.
 
 ```bash
 make amd64 deploy
@@ -24,7 +35,7 @@ make amd64 deploy
 
 ## Setting up the server
 
-Install `gnatsd` with the command below:
+On your server, install `gnatsd` with the command below:
 
 ```bash
 go get github.com/nats-io/gnatsd
@@ -36,6 +47,10 @@ server with the following commands:
 ```bash
 cd ~/diceshaker
 gnatsd --tls --tlscert cert.pem --tlskey key.pem
+```
+
+
+```bash
 ./diceshaker -role server
 ```
 
@@ -84,6 +99,20 @@ commands:
 cd ~/diceshaker
 ./diceshaker -role client -connect nats://<NATSSERVERHOST>:4222
 ```
+
+## systemd
+
+If you'd like to add the server and client programs as services managed by
+systemd, you can use a script included with this project to generate the
+configuration. The target `systemd` will generate the service files using this
+configuration found in `config.mk` but you can also generate your own. The
+`deploy-systemd` target will push the files to the remote machines.
+
+```bash
+make systemd deploy-systemd
+```
+
+Or see `./gensystemd --help` for additional help with generating them manually.
 
 [raspberry-pi]: https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
 [camera-module]: https://www.raspberrypi.org/products/camera-module-v2/
