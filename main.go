@@ -22,9 +22,9 @@ const (
 )
 
 var (
-	url  = flag.String("connect", nats.DefaultURL, "NATS server URL")
-	host = flag.String("http", ":8080", "Host and port for HTTP requests")
-	role = flag.String("role", "", "Is this a server or a client?")
+	connect = flag.String("connect", nats.DefaultURL, "NATS server URL")
+	listen  = flag.String("listen", ":8080", "Host and port for HTTP requests")
+	role    = flag.String("role", "", "Is this a server or a client?")
 
 	certVerify = flag.Bool("verify", false, "Controls whether a client verifies the server's certificate chain and host name")
 	certFile   = flag.String("certfile", "cert.pem", "Path to certificate file")
@@ -35,7 +35,7 @@ func init() {
 	flag.Parse()
 }
 
-func connect() *nats.Conn {
+func conn() *nats.Conn {
 	log.Printf("connecting to server\n")
 
 	pair, err := tls.LoadX509KeyPair(*certFile, *keyFile)
@@ -49,9 +49,9 @@ func connect() *nats.Conn {
 		Certificates:       []tls.Certificate{pair},
 	}
 
-	nc, err := nats.Connect(*url, nats.Secure(config))
+	nc, err := nats.Connect(*connect, nats.Secure(config))
 	if err != nil {
-		log.Fatalf("error connecting to server on %s: %v\n", *url, err)
+		log.Fatalf("error connecting to server on %s: %v\n", *connect, err)
 	}
 
 	return nc
@@ -74,7 +74,7 @@ func photo(id string) (string, error) {
 }
 
 func client() {
-	nc := connect()
+	nc := conn()
 	q := expl.New().Start()
 
 	q.Register(SUBJ_ROLL, func(i expl.Item) expl.Ack {
@@ -130,7 +130,7 @@ func client() {
 }
 
 func server() {
-	nc := connect()
+	nc := conn()
 	defer nc.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +150,7 @@ func server() {
 		sub.Unsubscribe()
 	})
 
-	log.Fatal(http.ListenAndServe(*host, nil))
+	log.Fatal(http.ListenAndServe(*listen, nil))
 }
 
 func str(i interface{}) (string, error) {

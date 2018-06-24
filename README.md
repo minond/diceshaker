@@ -65,10 +65,10 @@ Usage of ./diceshaker:
         Path to certificate file (default "cert.pem")
   -connect string
         NATS server URL (default "nats://localhost:4222")
-  -http string
-        Host and port for HTTP requests (default ":8080")
   -keyfile string
         Path to key file (default "key.pem")
+  -listen string
+        Host and port for HTTP requests (default ":8080")
   -role string
         Is this a server or a client?
   -verify

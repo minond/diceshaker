@@ -3,7 +3,7 @@
 role=$1
 user=$2
 dest=$3
-natsOrHttp=$4
+conn=$4
 
 help() {
   echo "Usage: ./gensystemd <role> <user> <destination> [nats-host] [http-port]"
@@ -31,20 +31,20 @@ assert() {
 
 case "$role" in
   server)
-    if [ -z "$natsOrHttp" ]; then
-      natsOrHttp=":3000"
+    if [ -z "$conn" ]; then
+      conn=":3000"
     fi
 
     assert "user" "$user"
     assert "destination" "$dest"
-    execstart="$dest/diceshaker -role server -http $natsOrHttp -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    execstart="$dest/diceshaker -role server -listen $conn -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   client)
     assert "user" "$user"
     assert "destination" "$dest"
-    assert "nats host" "$natsOrHttp"
-    execstart="$dest/diceshaker -role client -connect $natsOrHttp -certfile $dest/cert.pem -keyfile $dest/key.pem"
+    assert "nats host" "$conn"
+    execstart="$dest/diceshaker -role client -connect $conn -certfile $dest/cert.pem -keyfile $dest/key.pem"
     ;;
 
   help|-h|--help)
