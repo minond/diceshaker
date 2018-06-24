@@ -97,18 +97,22 @@ func client() {
 
 		if len(acks) == 0 {
 			log.Println("error, expecting 1 ack")
+			nc.Publish(id, nil)
 			return
 		}
 
 		ack := acks[0]
 		if ack.Err != nil {
 			log.Printf("error running photo task: %v\n", ack.Err)
+			nc.Publish(id, nil)
 			return
 		}
 
 		file, err := str(ack.Data)
 		if err != nil {
 			log.Printf("invalid ack data type: %v\n", ack.Data)
+			nc.Publish(id, nil)
+			return
 		}
 
 		log.Printf("file is %s\n", file)
