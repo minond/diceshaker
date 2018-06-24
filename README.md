@@ -1,6 +1,15 @@
-IRL Random Number Generator using a [Raspberry Pi](raspberry-pi) with a [Camera
-Module](camera-module). I'm using a Model B but any model with a camera module
-and wireless should work.
+IRL Random Number Generator web service that physically shakes a box with dice
+in it using a Raspberry Pi, then snaps a photo which is analyzed for a result and
+sent back to the user.
+
+
+## Hardware requirements
+
+- [Raspberry Pi][raspberry-pi], I'm using a Model B but any model with a camera
+  module and wireless should work.
+- [Camera Module][camera-module]
+- [Dice][dice], any will do as long as they're white with black dots.
+
 
 ## Getting started
 
@@ -116,3 +125,4 @@ Or see `./gensystemd --help` for additional help with generating them manually.
 
 [raspberry-pi]: https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
 [camera-module]: https://www.raspberrypi.org/products/camera-module-v2/
+[dice]: https://www.amazon.com/gp/product/B000CEFNP6
