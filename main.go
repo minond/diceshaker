@@ -2,10 +2,10 @@ package main
 
 import (
 	"crypto/tls"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -57,12 +57,13 @@ func connect() *nats.Conn {
 	return nc
 }
 
-func photo() (string, error) {
-	name := fmt.Sprintf("%d.jpg", rand.Int())
-	cmd := exec.Command("raspistill", "--nopreview",
-		"--timeout", "1", "--output", name)
+func photo(id string) (string, error) {
+	name := fmt.Sprintf("%s.jpg", id)
+	args := []string{"--nopreview", "--timeout", "1", "--output", name}
+	cmd := exec.Command("raspistill", args...)
 
-	log.Print("taking photo... ")
+	log.Print(args)
+	log.Print("taking photo...")
 	if err := cmd.Run(); err != nil {
 		log.Printf("error running command: %v\n", err)
 		return name, err
@@ -77,14 +78,19 @@ func client() {
 	q := expl.New().Start()
 
 	q.Register(SUBJ_ROLL, func(i expl.Item) expl.Ack {
-		name, err := photo()
+		id, err := str(i.Data)
+		if err != nil {
+			return expl.Ack{Err: err}
+		}
+
+		name, err := photo(id)
 		return expl.Ack{Data: name, Err: err}
 	})
 
 	log.Printf("subscribing to '%s'\n", SUBJ_ROLL)
 	nc.Subscribe(SUBJ_ROLL, func(m *nats.Msg) {
 		id := string(m.Data)
-		ch := q.Push(SUBJ_ROLL, m.Data)
+		ch := q.Push(SUBJ_ROLL, id)
 
 		log.Printf("roll %s\n", id)
 		acks := <-ch
@@ -100,14 +106,14 @@ func client() {
 			return
 		}
 
-		switch file := ack.Data.(type) {
-		case string:
-			log.Printf("file is %s\n", file)
-			log.Printf("publishing to %s\n", id)
-			nc.Publish(id, []byte(file))
-		default:
+		file, err := str(ack.Data)
+		if err != nil {
 			log.Printf("invalid ack data type: %v\n", ack.Data)
 		}
+
+		log.Printf("file is %s\n", file)
+		log.Printf("publishing to %s\n", id)
+		nc.Publish(id, []byte(file))
 	})
 	nc.Flush()
 
@@ -141,6 +147,15 @@ func server() {
 	})
 
 	log.Fatal(http.ListenAndServe(*host, nil))
+}
+
+func str(i interface{}) (string, error) {
+	switch val := i.(type) {
+	case string:
+		return val, nil
+	default:
+		return "", errors.New("bad string")
+	}
 }
 
 func main() {
