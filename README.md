@@ -3,6 +3,15 @@ in it using a Raspberry Pi, then snaps a photo which is analyzed for a result an
 sent back to the user.
 
 
+## Todo
+
+- [x] Server/client synchronization.
+- [x] Client work queueing.
+- [ ] Shake box.
+- [x] Take photo.
+- [ ] Analyze image.
+
+
 ## Hardware requirements
 
 - [Raspberry Pi][raspberry-pi], I'm using a Model B but any model with a camera
